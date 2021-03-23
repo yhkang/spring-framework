@@ -241,19 +241,27 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
 
+	/**
+	 * 1、解析切面定义
+	 * 2、提供一个机会直接返回代理对象TargetSource，不走createBean()流水线
+	 */
 	@Override
 	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
 		Object cacheKey = getCacheKey(beanClass, beanName);
 
+		// 判断bean是否需要被代理，AOP基础设施类、应该跳过的类 不被代理
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			// shouldSkip()方法会触发解析@Aspect定义的类
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
 			}
 		}
+
+		// 判断是否有自定义的 TargetSource
 
 		// Create proxy here if we have a custom TargetSource.
 		// Suppresses unnecessary default instantiation of the target bean:
@@ -287,6 +295,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+				// 寻找适用于当前bean的Advisor, 创建并返回proxy
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}

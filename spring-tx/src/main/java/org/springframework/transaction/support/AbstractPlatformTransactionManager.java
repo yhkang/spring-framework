@@ -348,6 +348,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		boolean debugEnabled = logger.isDebugEnabled();
 
 		if (isExistingTransaction(transaction)) {
+			// 根据事务传播级别对已有事务进行处理，
 			// Existing transaction found -> check propagation behavior to find out how to behave.
 			return handleExistingTransaction(def, transaction, debugEnabled);
 		}
@@ -370,6 +371,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				logger.debug("Creating new transaction with name [" + def.getName() + "]: " + def);
 			}
 			try {
+				// 开启新的事务
 				return startTransaction(def, transaction, debugEnabled, suspendedResources);
 			}
 			catch (RuntimeException | Error ex) {
@@ -397,6 +399,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
+		// 创建新的DB连接和事务
 		doBegin(transaction, definition);
 		prepareSynchronization(status, definition);
 		return status;
@@ -429,8 +432,10 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				logger.debug("Suspending current transaction, creating new transaction with name [" +
 						definition.getName() + "]");
 			}
+			// 暂停当前事务
 			SuspendedResourcesHolder suspendedResources = suspend(transaction);
 			try {
+				// 开启新事务
 				return startTransaction(definition, transaction, debugEnabled, suspendedResources);
 			}
 			catch (RuntimeException | Error beginEx) {
@@ -835,12 +840,13 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 					doRollback(status);
 				}
 				else {
-					// Participating in larger transaction
+					// Participating in larger transaction 嵌套事务
 					if (status.hasTransaction()) {
 						if (status.isLocalRollbackOnly() || isGlobalRollbackOnParticipationFailure()) {
 							if (status.isDebug()) {
 								logger.debug("Participating transaction failed - marking existing transaction as rollback-only");
 							}
+							// 标记当前事务仅能回滚
 							doSetRollbackOnly(status);
 						}
 						else {
@@ -895,6 +901,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				if (status.isDebug()) {
 					logger.debug("Marking existing transaction as rollback-only after commit exception", ex);
 				}
+				// 设置当时事务仅能回滚
 				doSetRollbackOnly(status);
 			}
 		}

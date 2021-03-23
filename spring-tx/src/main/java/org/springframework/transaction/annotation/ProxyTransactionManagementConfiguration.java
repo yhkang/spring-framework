@@ -45,20 +45,26 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 			TransactionAttributeSource transactionAttributeSource, TransactionInterceptor transactionInterceptor) {
 
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
-		advisor.setTransactionAttributeSource(transactionAttributeSource);
-		advisor.setAdvice(transactionInterceptor);
+		advisor.setTransactionAttributeSource(transactionAttributeSource); //Pointcut
+		advisor.setAdvice(transactionInterceptor); //Advice
 		if (this.enableTx != null) {
 			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
 		}
 		return advisor;
 	}
 
+	/**
+	 * 事务切点Pointcut，主要是解析@Transactional注解
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionAttributeSource transactionAttributeSource() {
 		return new AnnotationTransactionAttributeSource();
 	}
 
+	/**
+	 * 事务增强Advice，处理事务的主要逻辑
+	 */
 	@Bean
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public TransactionInterceptor transactionInterceptor(TransactionAttributeSource transactionAttributeSource) {

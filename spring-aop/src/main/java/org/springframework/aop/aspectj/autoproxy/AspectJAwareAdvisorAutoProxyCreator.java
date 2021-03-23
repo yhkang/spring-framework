@@ -98,6 +98,8 @@ public class AspectJAwareAdvisorAutoProxyCreator extends AbstractAdvisorAutoProx
 	@Override
 	protected boolean shouldSkip(Class<?> beanClass, String beanName) {
 		// TODO: Consider optimization by caching the list of the aspect names
+		// 			> BeanFactoryAdvisorRetrievalHelper.findAdvisorBeans():是从仓库中找实现了Advisor类的Advisor
+		//			> BeanFactoryAspectJAdvisorsBuilder.buildAspectJAdvisors()会从仓库中取出@Aspect注解的切面类,解析出Advisor
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		for (Advisor advisor : candidateAdvisors) {
 			if (advisor instanceof AspectJPointcutAdvisor &&

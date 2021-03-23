@@ -439,6 +439,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 					if (logger.isDebugEnabled()) {
 						logger.debug("Exposing JPA transaction as JDBC [" + conHandle + "]");
 					}
+					//把connection绑定到当前线程
 					TransactionSynchronizationManager.bindResource(getDataSource(), conHolder);
 					txObject.setConnectionHolder(conHolder);
 				}
