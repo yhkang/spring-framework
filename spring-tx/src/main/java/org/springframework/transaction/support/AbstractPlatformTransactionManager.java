@@ -713,6 +713,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 			return;
 		}
 
+		//提交
 		processCommit(defStatus);
 	}
 
@@ -787,6 +788,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				triggerAfterCommit(status);
 			}
 			finally {
+				// 触发事务后回调（如@TransactionalEventListener）
 				triggerAfterCompletion(status, TransactionSynchronization.STATUS_COMMITTED);
 			}
 
