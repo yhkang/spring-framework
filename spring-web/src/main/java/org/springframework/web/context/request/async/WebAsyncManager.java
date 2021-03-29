@@ -295,6 +295,7 @@ public final class WebAsyncManager {
 			logExecutorWarning();
 		}
 
+		// 注册相关回调拦截器
 		List<CallableProcessingInterceptor> interceptors = new ArrayList<>();
 		interceptors.add(webAsyncTask.getInterceptor());
 		interceptors.addAll(this.callableInterceptors.values());
@@ -328,7 +329,9 @@ public final class WebAsyncManager {
 				interceptorChain.triggerAfterCompletion(this.asyncWebRequest, callable));
 
 		interceptorChain.applyBeforeConcurrentHandling(this.asyncWebRequest, callable);
+		//启动异步处理
 		startAsyncProcessing(processingContext);
+		//线程池中异步处理
 		try {
 			Future<?> future = this.taskExecutor.submit(() -> {
 				Object result = null;
@@ -342,6 +345,7 @@ public final class WebAsyncManager {
 				finally {
 					result = interceptorChain.applyPostProcess(this.asyncWebRequest, callable, result);
 				}
+				// 将异步处理得到的结果处理响应到客户端
 				setConcurrentResultAndDispatch(result);
 			});
 			interceptorChain.setTaskFuture(future);
@@ -398,6 +402,7 @@ public final class WebAsyncManager {
 			boolean isError = result instanceof Throwable;
 			logger.debug("Async " + (isError ? "error" : "result set") + ", dispatch to " + formatRequestUri());
 		}
+		// 请求重新分发给Servlet容器处理
 		this.asyncWebRequest.dispatch();
 	}
 

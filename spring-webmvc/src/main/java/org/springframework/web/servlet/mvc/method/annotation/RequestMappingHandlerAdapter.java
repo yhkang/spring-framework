@@ -739,6 +739,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 		handlers.add(new HttpEntityMethodProcessor(getMessageConverters(),
 				this.contentNegotiationManager, this.requestResponseBodyAdvice));
 		handlers.add(new HttpHeadersReturnValueHandler());
+		// 异步请求处理器
 		handlers.add(new CallableMethodReturnValueHandler());
 		handlers.add(new DeferredResultMethodReturnValueHandler());
 		handlers.add(new AsyncTaskMethodReturnValueHandler(this.beanFactory));
@@ -795,6 +796,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			if (session != null) {
 				Object mutex = WebUtils.getSessionMutex(session);
 				synchronized (mutex) {
+					// 调用
 					mav = invokeHandlerMethod(request, response, handlerMethod);
 				}
 			}
@@ -856,6 +858,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
 			ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
 
+			// 对handlerMethod的包装，转成ServletInvocableHandlerMethod
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
 			if (this.argumentResolvers != null) {
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
@@ -874,6 +877,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
 
+			// 异步请求相关设置
 			WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 			asyncManager.setTaskExecutor(this.taskExecutor);
 			asyncManager.setAsyncWebRequest(asyncWebRequest);
@@ -891,7 +895,9 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				invocableMethod = invocableMethod.wrapConcurrentResult(result);
 			}
 
+			// 注意里面的handleReturnValue
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
+			// 异步请求直接返回null
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				return null;
 			}
