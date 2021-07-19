@@ -332,12 +332,16 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		//1.自定义TargetSource，已经进行过代理子类生成 。 不包装直接返回Bean实例
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		//2.已经判定不需要代理的， 不代理
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		//3.isInfrastructureClass(bean.getClass())是基础设施类的不代理
+		//4.shouldSkip(bean.getClass(), beanName)应该跳过的不代理
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
@@ -353,6 +357,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			return proxy;
 		}
 
+		//5.没有具体拦截器的不代理
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
 		return bean;
 	}
