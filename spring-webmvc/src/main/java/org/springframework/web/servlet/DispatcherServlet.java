@@ -493,7 +493,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
-		initMultipartResolver(context);
+		// 这里Context是Servlet子容器，从容器中按名称或类型查找bean，如果没有就调用getDefaultStrategy按照类型获取默认组件，
+		// 默认组件配置在 resources/DispatcherServlet.properties 文件中
+		initMultipartResolver(context); // 无默认实现
 		initLocaleResolver(context);
 		initThemeResolver(context);
 		// 初始化HandlerMappings，默认实现为BeanNameUrlHandlerMapping
