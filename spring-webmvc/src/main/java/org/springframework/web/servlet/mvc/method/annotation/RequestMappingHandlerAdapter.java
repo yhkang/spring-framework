@@ -877,13 +877,15 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
 			asyncWebRequest.setTimeout(this.asyncRequestTimeout);
 
-			// 异步请求相关设置
+			// 异步请求相关设置，asyncManager保存在request的属性中
 			WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 			asyncManager.setTaskExecutor(this.taskExecutor);
 			asyncManager.setAsyncWebRequest(asyncWebRequest);
 			asyncManager.registerCallableInterceptors(this.callableInterceptors);
 			asyncManager.registerDeferredResultInterceptors(this.deferredResultInterceptors);
 
+			// 如果是异步请求且已经有result结果（异步任务执行完后重新dispatch到这里）
+			// 封装新的ConcurrentResultHandlerMethod（不发起请求，直接返回异步result）替换invocableMethod
 			if (asyncManager.hasConcurrentResult()) {
 				Object result = asyncManager.getConcurrentResult();
 				mavContainer = (ModelAndViewContainer) asyncManager.getConcurrentResultContext()[0];
@@ -896,6 +898,7 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 
 			// 注意里面的handleReturnValue
+			// 如果是异步请求，请求调用后，相应的返回值处理器会调用WebAsyncManager的相关方法启动异步处理，然后直接返回
 			invocableMethod.invokeAndHandle(webRequest, mavContainer);
 			// 异步请求直接返回null
 			if (asyncManager.isConcurrentHandlingStarted()) {

@@ -221,6 +221,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void initHandlerMethods() {
 		for (String beanName : getCandidateBeanNames()) {
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
+				// 注册HandlerMethod
 				processCandidateBean(beanName);
 			}
 		}
@@ -261,7 +262,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		// @Controller 和 @RequestMapping 注解的类
 		if (beanType != null && isHandler(beanType)) {
+			// 查找注册HandlerMethods
 			detectHandlerMethods(beanName);
 		}
 	}
@@ -280,6 +283,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							// @RequestMapping注解的方法，包装成RequestMappingInfo返回
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -295,6 +299,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 			methods.forEach((method, mapping) -> {
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				// 注册到mappingRegistry
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -373,6 +378,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		String lookupPath = initLookupPath(request);
 		this.mappingRegistry.acquireReadLock();
 		try {
+			// 查找最优匹配的Handler
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
